@@ -1,6 +1,4 @@
 {
   "version": 2,
-  "routes": [
-    { "src": "/i", "dest": "/api/image.ts" }
-  ]
+  "routes": [{ "src": "/i", "dest": "/api/image.ts" }]
 }
