@@ -11,9 +11,6 @@
     "sourceMap": true,
     "esModuleInterop": true
   },
-  "include": [
-    "api/**/*.ts",
-    "./node_modules/@now/**/*.d.ts"
-  ],
+  "include": ["api/**/*.ts", "streams/**/*.ts", "utils/**/*.ts", "./node_modules/@now/**/*.d.ts"],
   "exclude": ["node_modules/", "dist/"]
 }

@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp from "../utils/sharp";
 export const supportedFormat = ["jpeg", "png", "webp", "tiff", "heiff", "raw"];
 export default (
   format: string,

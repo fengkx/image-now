@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import sharp from "../utils/sharp";
 
 export default (
   width: number | undefined,
