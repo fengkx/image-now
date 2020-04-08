@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+    <title>Image now</title>
+    <style>
+
+
+        body {
+            background-color: hsl(0,0%,97%);
+        }
+        .image {
+            height: 100%;
+            width: 100%;
+            min-height: 60vmin;
+            text-align: center;
+        }
+        .parmater {
+            display: grid;
+            grid-template-rows: 1fr;
+            grid-row-gap: 1.2rem;
+            justify-content: center;
+            width: 100%;
+        }
+        .parmater input {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            min-width: 35em;
+            line-height: 1.625;
+            font-size: medium;
+            padding: 5px;
+            box-sizing: border-box;
+            transition: border ease-in-out .5s;
+
+        }
+        @media(max-width:450px) {
+            .parmater input {
+                font-size: 12px;
+                min-width: 10em;
+            }
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+        .parmater input:focus {
+            border: 2px RGBA(0, 200, 200, .3) solid;
+        }
+        .parmater input:hover {
+            border: 2px RGBA(50, 0, 200, .4) solid;
+        }
+        label[for=quality] {
+            display: flex;
+            align-items: center;
+        }
+        #quality {
+            margin-left: 1rem;
+            flex-grow: 1;
+        }
+        a:link {
+            color: unset;
+            text-decoration: none;
+        }
+        a.full-url:hover {
+            color: #604fd9;
+        }
+        a:visited {
+            color: unset;
+        }
+        footer {
+            display: flex;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+        footer a:link, footer a:visited {
+            color: #0070f3;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="main">
+            <div class="image">
+                <img alt="preview image" :src="pImgUrl">
+            </div>
+            <div class="parmater">
+                <a class="full-url" :href="fullUrl">{{fullUrl}}</a>
+                <input placeholder="image url" type="text" name="url" v-model.number="imgUrl">
+                <input placeholder="width" type="number" name="w" min="1" v-model.number="w">
+                <input placeholder="height" type="number" name="h" min="1" v-model.number="h">
+                <input placeholder="format (jpeg, png, webp, tiff, heiff, raw)" type="text" name="h" min="1" v-model.trim="f">
+                <label for="quality">
+                    <span>quality</span>
+                    <input id="quality" placeholder="quality(1~100)" name="q" min="1" max="100" type="range" v-model.number="q">
+                </label>
+            </div>
+        </div>
+        <footer>
+            <p>Powered by <a href="https://now.sh">Now</a> and <a href="https://github.com/fengkx/image-now">image-now</a></p>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.js" crossorigin="anonymous"></script>
+    <script>
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                imgUrl: 'https://images.unsplash.com/photo-1448376561459-dbe8868fa34c',
+                pImgUrl: '',
+                w: '750',
+                h: '450',
+                q: '99',
+                f: 'webp'
+            },
+            methods: {
+                calcUrl: function () {
+                    const {w, h, q, f} = this;
+                    const parms = {w, h, q, f};
+                    for(let k in parms) {
+                        if(parms[k] === '') {
+                            delete parms[k]
+                        }
+                    }
+                    const qs = new URLSearchParams(parms).toString() + `&url=${this.imgUrl}`;
+                    const url = `/i?${qs}`
+                    this.pImgUrl = url;
+                },
+                debounce: function (func, wait, immediate) {
+                    var timeout;
+                    return function() {
+                        var context = this, args = arguments;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(function() {
+                            timeout = null;
+                            if (!immediate) func.apply(context, args);
+                        }, wait);
+                        if (immediate && !timeout) func.apply(context, args);
+                    };
+                }
+            },
+            watch: {
+                imgUrl: function () {
+                    this.debouncedCalcUrl();
+                },
+                w: function () {
+                    this.debouncedCalcUrl();
+                },
+                h: function () {
+                    this.debouncedCalcUrl();
+                },
+                q: function () {
+                    this.debouncedCalcUrl();
+                },
+                f: function () {
+                    this.debouncedCalcUrl();
+                },
+            },
+            computed: {
+                fullUrl: function() {
+                    return `${window.location.protocol}//${window.location.host}${this.pImgUrl}`
+                }
+            },
+            created: function () {
+                this.debouncedCalcUrl = this.debounce(this.calcUrl.bind(this), 800);
+                this.debouncedCalcUrl();
+            }
+        });
+    </script>
+</body>
+</html>
