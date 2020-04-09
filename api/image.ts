@@ -52,8 +52,9 @@ export default async function(req: NowRequest, res: NowResponse) {
   if (contentDisposition) {
     res.setHeader("Content-Disposition", contentDisposition);
   }
-  res.setHeader("Content-Type", `image/${format}`);
-  res.setHeader("Cache-Control", `max-age=0, s-maxage=86400`);
+  res.setHeader('Content-Type', `image/${format}`);
+  res.setHeader('Cache-Control', 'max-age=0, s-maxage=86400');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.status(200);
   pump(result, res);
 }
