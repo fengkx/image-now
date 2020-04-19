@@ -8,7 +8,7 @@ import getFromat from "../utils/getFromat";
 
 export default async function(req: NowRequest, res: NowResponse) {
   const fetch = setupFetch(nodeFetch);
-  let { url, w, h, q, f } = req.query;
+  let { url, w, h, q, f, output } = req.query;
 
   // normalize arguments
   if (
@@ -16,7 +16,8 @@ export default async function(req: NowRequest, res: NowResponse) {
     Array.isArray(w) ||
     Array.isArray(h) ||
     Array.isArray(q) ||
-    Array.isArray(f)
+    Array.isArray(f) ||
+    Array.isArray(output)
   ) {
     res.status(400).send("should only have one parameter each");
     return;
@@ -47,7 +48,7 @@ export default async function(req: NowRequest, res: NowResponse) {
   const imgStream = await resp.body;
   let result = pump(imgStream, resizeStream(width, height));
   const sourceFormat = getFromat(resp, url);
-  const format: string = f || sourceFormat || "png"; // fallback png
+  const format: string = output || f || sourceFormat || "png"; // fallback png
   result = pump(result, formatStream(format, quality));
   if (contentDisposition) {
     res.setHeader("Content-Disposition", contentDisposition);
