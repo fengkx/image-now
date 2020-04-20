@@ -58,6 +58,9 @@ export default async function(req: NowRequest, res: NowResponse) {
   streamArr.push(formatStream(format, quality));
   if (contentDisposition) {
     res.setHeader("Content-Disposition", contentDisposition);
+  } else if(req.query.filename) {
+    const fname = Array.isArray(req.query.filename) ? req.query.filename[0]: req.query.filename;
+    res.setHeader("Content-Disposition", `inline; filename="${fname}"`);
   }
   if(ro) {
     const angle = parseInt(ro, 10);
