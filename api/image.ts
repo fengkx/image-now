@@ -4,11 +4,15 @@ import nodeFetch from "node-fetch";
 import pump from "pump";
 import resizeStream from "../streams/resize";
 import formatStream from "../streams/format";
+import rotateStream from "../streams/rotate";
+import flipStream from "../streams/flip";
+import flopStream from "../streams/flop";
 import getFromat from "../utils/getFromat";
+import {Duplex} from "stream";
 
 export default async function(req: NowRequest, res: NowResponse) {
   const fetch = setupFetch(nodeFetch);
-  let { url, w, h, q, f, output } = req.query;
+  let { url, w, h, q, f, output, ro, rbg } = req.query;
 
   // normalize arguments
   if (
@@ -17,7 +21,9 @@ export default async function(req: NowRequest, res: NowResponse) {
     Array.isArray(h) ||
     Array.isArray(q) ||
     Array.isArray(f) ||
-    Array.isArray(output)
+    Array.isArray(output) ||
+    Array.isArray(ro) ||
+    Array.isArray(rbg)
   ) {
     res.status(400).send("should only have one parameter each");
     return;
@@ -32,7 +38,7 @@ export default async function(req: NowRequest, res: NowResponse) {
       (height && Number.isNaN(height)) ||
       (quality && Number.isNaN(quality))
     )
-      throw new Error("w h should be valid number");
+      throw new Error("w h quality should be valid number");
     if (quality && (quality <= 0 || quality > 100)) {
       throw new Error("q should be number between 1 to 100");
     }
@@ -46,16 +52,26 @@ export default async function(req: NowRequest, res: NowResponse) {
   const contentDisposition = headers.get("Content-Disposition");
   const contentType = headers.get("Content-Type");
   const imgStream = await resp.body;
-  let result = pump(imgStream, resizeStream(width, height));
+  const streamArr: Array<NodeJS.ReadableStream | NodeJS.WritableStream| Duplex> = [imgStream, resizeStream(width, height)];
   const sourceFormat = getFromat(resp, url);
   const format: string = output || f || sourceFormat || "png"; // fallback png
-  result = pump(result, formatStream(format, quality));
+  streamArr.push(formatStream(format, quality));
   if (contentDisposition) {
     res.setHeader("Content-Disposition", contentDisposition);
+  }
+  if(ro) {
+    const angle = parseInt(ro, 10);
+    streamArr.push(rotateStream(isNaN(angle) ? 0: angle, rbg));
+  }
+  if('flip' in req.query) {
+    streamArr.push(flipStream);
+  }
+  if('flop' in req.query) {
+    streamArr.push(flopStream)
   }
   res.setHeader('Content-Type', `image/${format}`);
   res.setHeader('Cache-Control', 'max-age=0, s-maxage=86400');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.status(200);
-  pump(result, res);
+  pump(...streamArr, res);
 }
